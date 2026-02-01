@@ -4,5 +4,12 @@
     "eslint": "^9.39.2",
     "globals": "^17.1.0",
     "markdownlint-cli": "^0.47.0"
+  },
+  "scripts": {
+    "deploy": "node scripts/deploy.js",
+    "explore": "node scripts/explore.js",
+    "uninstall": "node scripts/uninstall.js",
+    "setup-pm": "node scripts/setup-package-manager.js",
+    "sync": "node scripts/sync-upstream.js"
   }
 }

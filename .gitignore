@@ -30,3 +30,8 @@ examples/sessions/*.tmp
 
 # Local drafts
 marketing/
+
+# Deployment Tools
+.claude-deploy/
+*.local.json
+/.claude

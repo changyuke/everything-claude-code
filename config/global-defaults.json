@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "deploymentMode": "project",
+  "components": {
+    "agents": {
+      "enabled": true,
+      "items": ["all"]
+    },
+    "skills": {
+      "enabled": true,
+      "items": ["all"]
+    },
+    "commands": {
+      "enabled": true,
+      "items": ["all"]
+    },
+    "rules": {
+      "enabled": true,
+      "items": ["all"]
+    },
+    "hooks": {
+      "enabled": true,
+      "items": ["all"]
+    }
+  },
+  "packageManager": "pnpm",
+  "shellIntegration": {
+    "enabled": true,
+    "autoDetect": true
+  }
+}
