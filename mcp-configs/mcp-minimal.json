@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Essential: Persistent memory"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Essential: Chain-of-thought"
+    }
+  },
+  "_usage": "Minimal recommended MCP configuration. Copy to ~/.claude.json mcpServers section.",
+  "_totalCost": "~3k tokens - safe baseline",
+  "_nextSteps": "Add 1-2 project-specific MCPs from mcp-servers.json based on your work type."
+}

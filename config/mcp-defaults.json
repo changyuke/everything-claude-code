@@ -1,0 +1,172 @@
+{
+  "version": "1.0.0",
+  "description": "MCP Server configuration strategy with decision guide",
+  "strategy": "minimal-core",
+
+  "coreServers": {
+    "memory": {
+      "enabled": true,
+      "description": "持久化记忆，跨会话保留上下文",
+      "use_case": "所有场景必需 - 避免重复解释背景",
+      "priority": "high",
+      "cost": "~1k tokens"
+    },
+    "sequential-thinking": {
+      "enabled": true,
+      "description": "链式推理，复杂问题分解",
+      "use_case": "所有场景必需 - 提升推理质量",
+      "priority": "high",
+      "cost": "~2k tokens"
+    }
+  },
+
+  "projectTypeRecommendations": {
+    "frontend": {
+      "description": "前端开发（React/Vue/Svelte 等）",
+      "recommended": ["vercel", "cloudflare-docs"],
+      "optional": ["magic"]
+    },
+    "backend": {
+      "description": "后端开发（Node.js/Python/Go 等）",
+      "recommended": ["railway", "supabase"],
+      "optional": ["clickhouse"]
+    },
+    "fullstack": {
+      "description": "全栈开发",
+      "recommended": ["github", "vercel", "supabase"],
+      "optional": ["railway"]
+    },
+    "embedded": {
+      "description": "嵌入式软件开发（MCU/汽车电子/物联网）",
+      "recommended": ["github", "context7"],
+      "optional": ["filesystem"],
+      "notes": "不需要云服务 MCP（vercel/railway/supabase），重点是版本控制和技术文档查询"
+    },
+    "data-science": {
+      "description": "数据科学/分析",
+      "recommended": ["clickhouse", "context7"],
+      "optional": ["filesystem"]
+    },
+    "cloudflare-dev": {
+      "description": "Cloudflare Workers 开发",
+      "recommended": ["cloudflare-docs", "cloudflare-workers-builds", "cloudflare-workers-bindings"],
+      "optional": ["cloudflare-observability"]
+    }
+  },
+
+  "serverDetails": {
+    "github": {
+      "description": "GitHub PR/Issue/Repo 操作",
+      "requires_auth": true,
+      "env": "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "use_when": "频繁使用 GitHub PR review、issue 管理",
+      "cost": "~5k tokens",
+      "tags": ["git", "collaboration"]
+    },
+    "firecrawl": {
+      "description": "网页爬取和数据提取",
+      "requires_auth": true,
+      "env": "FIRECRAWL_API_KEY",
+      "use_when": "需要爬取外部网站内容",
+      "cost": "~3k tokens",
+      "tags": ["scraping", "data"]
+    },
+    "supabase": {
+      "description": "Supabase 数据库操作",
+      "requires_auth": true,
+      "env": "SUPABASE_URL + SUPABASE_ANON_KEY",
+      "use_when": "使用 Supabase 作为后端",
+      "cost": "~4k tokens",
+      "tags": ["database", "backend"]
+    },
+    "vercel": {
+      "description": "Vercel 部署和项目管理",
+      "requires_auth": false,
+      "use_when": "使用 Vercel 部署前端项目",
+      "cost": "~2k tokens",
+      "tags": ["deployment", "frontend"]
+    },
+    "railway": {
+      "description": "Railway 部署管理",
+      "requires_auth": true,
+      "env": "RAILWAY_TOKEN",
+      "use_when": "使用 Railway 部署后端服务",
+      "cost": "~3k tokens",
+      "tags": ["deployment", "backend"]
+    },
+    "cloudflare-docs": {
+      "description": "Cloudflare 文档搜索",
+      "requires_auth": false,
+      "use_when": "开发 Cloudflare Workers/Pages",
+      "cost": "~2k tokens",
+      "tags": ["docs", "cloudflare"]
+    },
+    "cloudflare-workers-builds": {
+      "description": "Cloudflare Workers 构建管理",
+      "requires_auth": true,
+      "env": "CLOUDFLARE_API_TOKEN",
+      "use_when": "管理 Workers 部署",
+      "cost": "~3k tokens",
+      "tags": ["cloudflare", "deployment"]
+    },
+    "cloudflare-workers-bindings": {
+      "description": "Cloudflare Workers Bindings 配置",
+      "requires_auth": true,
+      "env": "CLOUDFLARE_API_TOKEN",
+      "use_when": "配置 KV/D1/R2 等绑定",
+      "cost": "~2k tokens",
+      "tags": ["cloudflare", "config"]
+    },
+    "cloudflare-observability": {
+      "description": "Cloudflare 日志和监控",
+      "requires_auth": true,
+      "env": "CLOUDFLARE_API_TOKEN",
+      "use_when": "调试生产问题",
+      "cost": "~3k tokens",
+      "tags": ["cloudflare", "monitoring"]
+    },
+    "clickhouse": {
+      "description": "ClickHouse 分析查询",
+      "requires_auth": true,
+      "env": "CLICKHOUSE_HOST + CLICKHOUSE_USER + CLICKHOUSE_PASSWORD",
+      "use_when": "数据分析和 OLAP 查询",
+      "cost": "~4k tokens",
+      "tags": ["database", "analytics"]
+    },
+    "context7": {
+      "description": "实时文档查询",
+      "requires_auth": false,
+      "use_when": "频繁查询技术文档",
+      "cost": "~3k tokens",
+      "tags": ["docs", "research"]
+    },
+    "magic": {
+      "description": "Magic UI 组件库",
+      "requires_auth": false,
+      "use_when": "使用 Magic UI 构建界面",
+      "cost": "~2k tokens",
+      "tags": ["ui", "frontend"]
+    },
+    "filesystem": {
+      "description": "文件系统操作（需配置路径）",
+      "requires_auth": false,
+      "use_when": "跨项目文件操作",
+      "cost": "~2k tokens",
+      "tags": ["filesystem", "tools"]
+    }
+  },
+
+  "contextWindowLimits": {
+    "maxEnabledMcps": 10,
+    "maxActiveTools": 80,
+    "warningThreshold": 6,
+    "recommendedForMostProjects": 4
+  },
+
+  "decisionGuide": {
+    "step1": "从 core servers 开始（memory + sequential-thinking）",
+    "step2": "根据项目类型选择 1-2 个推荐 MCP",
+    "step3": "按需添加可选 MCP，保持总数 < 6",
+    "step4": "项目切换时使用 disabledMcpServers 调整"
+  }
+}

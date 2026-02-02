@@ -1,0 +1,40 @@
+{
+  "deploymentMode": "global",
+  "_note": "此配置文件可覆盖 global-defaults.json 的设置。当前采用全局模式 + 极简策略。",
+  "components": {
+    "agents": {
+      "enabled": true,
+      "items": ["planner", "code-reviewer"],
+      "description": "核心代理：规划和代码审查"
+    },
+    "skills": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "技能通常很轻量，全部启用"
+    },
+    "commands": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "命令全部启用，开销最小"
+    },
+    "rules": {
+      "enabled": true,
+      "items": ["coding-style", "git-workflow", "testing"],
+      "description": "核心规则：代码风格、Git 工作流、测试"
+    },
+    "hooks": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "Hooks 运行时执行，上下文影响小"
+    }
+  },
+  "statusLine": {
+    "enabled": true,
+    "description": "自定义状态栏：显示目录、分支、上下文、模型、时间、TODO"
+  },
+  "packageManager": "pnpm",
+  "shellIntegration": {
+    "enabled": true,
+    "autoDetect": true
+  }
+}

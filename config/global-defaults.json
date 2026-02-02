@@ -1,31 +1,66 @@
 {
   "version": "1.0.0",
-  "deploymentMode": "project",
+  "deploymentMode": "global",
+  "_deploymentModeRationale": {
+    "global": "通用组件安装到 ~/.claude/，所有项目共享，避免重复配置",
+    "project": "项目特定配置安装到 ./.claude/，用于团队协作或项目定制",
+    "recommendation": "首次安装使用 global，项目定制时使用 project 覆盖"
+  },
   "components": {
     "agents": {
       "enabled": true,
-      "items": ["all"]
+      "items": ["planner", "code-reviewer"],
+      "description": "核心代理：规划和代码审查",
+      "rationale": "这两个是最常用的代理，其他可按需启用"
     },
     "skills": {
       "enabled": true,
-      "items": ["all"]
+      "items": ["all"],
+      "description": "技能通常很轻量，全部启用",
+      "rationale": "Skills 是 prompt 级别，上下文影响小"
     },
     "commands": {
       "enabled": true,
-      "items": ["all"]
+      "items": ["all"],
+      "description": "命令全部启用，开销最小",
+      "rationale": "Commands 是快捷方式，几乎无上下文成本"
     },
     "rules": {
       "enabled": true,
-      "items": ["all"]
+      "items": ["coding-style", "git-workflow", "testing"],
+      "description": "核心规则：代码风格、Git 工作流、测试",
+      "rationale": "只启用通用规则，避免规则过多导致混乱"
     },
     "hooks": {
       "enabled": true,
-      "items": ["all"]
+      "items": ["all"],
+      "description": "Hooks 运行时执行，上下文影响小",
+      "rationale": "Hooks 是事件驱动，不会一直占用上下文"
     }
+  },
+  "statusLine": {
+    "enabled": true,
+    "description": "自定义状态栏：显示目录、分支、上下文、模型、时间、TODO",
+    "features": ["directory", "git-branch", "context-usage", "model-name", "time", "todo-count"]
+  },
+  "mcp": {
+    "enabled": true,
+    "strategy": "minimal-core",
+    "description": "MCP 配置在用户级别 (~/.claude.json)"
+  },
+  "plugins": {
+    "enabled": true,
+    "strategy": "essential-only",
+    "description": "仅必需插件（hookify）"
   },
   "packageManager": "pnpm",
   "shellIntegration": {
     "enabled": true,
     "autoDetect": true
+  },
+  "_comments": {
+    "strategy": "极简策略 - 只启用核心组件，按需扩展",
+    "contextWindow": "保护 200k 上下文窗口，避免退化到 70k",
+    "customization": "用户可通过修改 config/deployment.json 自定义"
   }
 }

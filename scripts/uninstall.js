@@ -3,6 +3,7 @@ const path = require('path');
 const os = require('os');
 const readline = require('readline');
 const { removeFromRc } = require('./lib/shell-detector');
+const { uninstallStatusLine } = require('./lib/statusline-deployer');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -92,7 +93,13 @@ Target: ${modeLabel}`);
     }
   });
 
-  // 3. Remove Shell Integration
+  // 3. Remove Status Line Configuration
+  const removeStatusLine = await question('\nRemove Status Line Configuration? [y/N]: ');
+  if (removeStatusLine.trim().toLowerCase() === 'y') {
+    uninstallStatusLine();
+  }
+
+  // 4. Remove Shell Integration
   const removeShell = await question('\nRemove Shell Integration (aliases from .bashrc/.zshrc)? [y/N]: ');
   if (removeShell.trim().toLowerCase() === 'y') {
     if (removeFromRc()) {
