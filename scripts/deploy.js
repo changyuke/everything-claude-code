@@ -108,6 +108,10 @@ alias claude-setup-mcp="node \${CLAUDE_PLUGIN_ROOT}/scripts/setup-mcp.js"`;
           console.log('\n=== MCP 配置 ===');
           console.log('正在启动 MCP 配置助手...\n');
 
+          // IMPORTANT: Close the current readline before spawning setup-mcp.js
+          // Both scripts use readline on stdin, and having two active readers causes input conflicts
+          rl.close();
+
           const { spawn } = require('child_process');
           const mcpProcess = spawn('node', [path.join(__dirname, 'setup-mcp.js')], {
               stdio: 'inherit'
@@ -121,6 +125,13 @@ alias claude-setup-mcp="node \${CLAUDE_PLUGIN_ROOT}/scripts/setup-mcp.js"`;
                   resolve();
               });
           });
+
+          // Already closed, skip finally block close
+          if (doShellInt) {
+              console.log('\n🔄 重启 shell 以应用别名配置');
+          }
+          console.log('🔄 重启 Claude Code 以加载所有配置\n');
+          return;
       }
 
       if (doShellInt) {

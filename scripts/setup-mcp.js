@@ -59,7 +59,11 @@ const rl = readline.createInterface({
 
 function question(prompt) {
   return new Promise((resolve) => {
-    rl.question(prompt, resolve);
+    rl.question(prompt, (answer) => {
+      // Clean input: remove carriage returns, null bytes, and other control characters
+      const cleaned = answer.replace(/[\r\n\x00-\x1f]/g, '').trim();
+      resolve(cleaned);
+    });
   });
 }
 
@@ -392,7 +396,7 @@ async function mainMenu() {
 
   const choice = await question('输入选项 (1-6): ');
 
-  switch (choice.trim()) {
+  switch (choice) {
     case '1':
       await installMinimalCore();
       break;
