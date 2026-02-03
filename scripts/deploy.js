@@ -1,5 +1,5 @@
 const readline = require('readline');
-const { loadConfig } = require('./lib/config-manager');
+const { loadConfig, parseConfigArg, findProjectConfigs, setCustomConfigPath } = require('./lib/config-manager');
 const { deployGlobal, deployProject } = require('./lib/deployment-manager');
 const { writeToRc } = require('./lib/shell-detector');
 const { deployStatusLine } = require('./lib/statusline-deployer');
@@ -14,20 +14,50 @@ const question = (query) => new Promise((resolve) => rl.question(query, resolve)
 
 async function main() {
   console.log('=== Everything Claude Code Deployment ===');
-  
-  // 1. Load Config
-  let config = loadConfig();
-  const defaultMode = config.deploymentMode || 'global';
-  
+
   // Check CLI args
   const args = process.argv.slice(2);
+
+  // Parse --config or -c argument
+  const customConfig = parseConfigArg(args);
+  if (customConfig) {
+    setCustomConfigPath(customConfig);
+    console.log(`📂 使用自定义配置: ${customConfig}`);
+  }
+
+  // 1. Load Config (with custom path if specified)
+  let config = loadConfig({ projectConfig: customConfig });
+  const defaultMode = config.deploymentMode || 'global';
+
+  // Show loaded config source
+  if (config._loadedFrom) {
+    console.log(`📄 配置来源: ${config._loadedFrom.project}`);
+  }
+
   let mode = defaultMode;
-  
+
   if (args.includes('--global')) mode = 'global';
   if (args.includes('--project')) mode = 'project';
   
   // Interactive if no args
   if (args.length === 0) {
+      // Check for available project configs
+      const availableConfigs = findProjectConfigs();
+      if (availableConfigs.length > 1 && !customConfig) {
+        console.log('\n可用的部署配置文件:');
+        availableConfigs.forEach((cfg, index) => {
+          const marker = cfg.name === 'default' ? ' (默认)' : '';
+          console.log(`  ${index + 1}. ${cfg.filename}${marker}`);
+        });
+        const configChoice = await question(`\n选择配置文件 (1-${availableConfigs.length}, 默认 1): `);
+        const selectedIndex = parseInt(configChoice.trim()) - 1;
+        if (selectedIndex >= 0 && selectedIndex < availableConfigs.length) {
+          setCustomConfigPath(availableConfigs[selectedIndex].path);
+          config = loadConfig({ projectConfig: availableConfigs[selectedIndex].path });
+          console.log(`📂 使用配置: ${availableConfigs[selectedIndex].filename}`);
+        }
+      }
+
       const modeInput = await question(`Deployment Mode [Global/Project] (default: ${defaultMode}): `);
       if (modeInput.trim().toLowerCase().startsWith('p')) mode = 'project';
       else if (modeInput.trim().toLowerCase().startsWith('g')) mode = 'global';
@@ -90,14 +120,16 @@ async function main() {
           const scriptPath = path.resolve(__dirname);
           // Normalize path for shell usage (forward slashes)
           const projectRoot = path.dirname(scriptPath).split(path.sep).join('/');
-          
+
           const shellContent = `export CLAUDE_PLUGIN_ROOT="${projectRoot}"
+alias claude-help="node \${CLAUDE_PLUGIN_ROOT}/scripts/help.js"
 alias claude-deploy="node \${CLAUDE_PLUGIN_ROOT}/scripts/deploy.js"
 alias claude-explore="node \${CLAUDE_PLUGIN_ROOT}/scripts/explore.js"
 alias claude-uninstall="node \${CLAUDE_PLUGIN_ROOT}/scripts/uninstall.js"
 alias claude-config="node \${CLAUDE_PLUGIN_ROOT}/scripts/setup-package-manager.js"
-alias claude-setup-mcp="node \${CLAUDE_PLUGIN_ROOT}/scripts/setup-mcp.js"`;
-          
+alias claude-setup-mcp="node \${CLAUDE_PLUGIN_ROOT}/scripts/setup-mcp.js"
+alias claude-sync="node \${CLAUDE_PLUGIN_ROOT}/scripts/sync-upstream.js"`;
+
           writeToRc(shellContent);
       }
       

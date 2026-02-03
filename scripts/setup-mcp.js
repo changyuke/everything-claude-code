@@ -21,6 +21,40 @@ const CLAUDE_CONFIG_PATH = path.join(os.homedir(), '.claude.json');
 const MCP_DEFAULTS_PATH = path.join(__dirname, '../config/mcp-defaults.json');
 const MCP_SERVERS_PATH = path.join(__dirname, '../mcp-configs/mcp-servers.json');
 
+// Platform detection
+const IS_WINDOWS = process.platform === 'win32';
+
+/**
+ * Transform MCP server config for Windows compatibility
+ * Windows requires 'cmd /c' wrapper to execute npx
+ * @param {Object} serverConfig - Original server configuration
+ * @returns {Object} - Platform-adapted configuration
+ */
+function adaptServerConfigForPlatform(serverConfig) {
+  // Only transform if on Windows and using npx command
+  if (!IS_WINDOWS) {
+    return serverConfig;
+  }
+
+  // HTTP-based servers don't need transformation
+  if (serverConfig.type === 'http') {
+    return serverConfig;
+  }
+
+  // Only transform npx commands (not arbitrary executables)
+  const command = serverConfig.command?.toLowerCase();
+  if (command !== 'npx' && command !== 'node' && command !== 'npm') {
+    return serverConfig;
+  }
+
+  // Create Windows-compatible config with cmd /c wrapper
+  return {
+    ...serverConfig,
+    command: 'cmd',
+    args: ['/c', serverConfig.command, ...(serverConfig.args || [])]
+  };
+}
+
 // Load configuration files
 let mcpDefaults, mcpServers;
 
@@ -152,7 +186,12 @@ async function installMinimalCore() {
   console.log('将安装以下 MCP 服务器：');
   console.log('  - memory            : 持久化记忆（~1k tokens）');
   console.log('  - sequential-thinking : 链式推理（~2k tokens）');
-  console.log('\n总成本: ~3k tokens (1.5% of 200k)\n');
+  console.log('\n总成本: ~3k tokens (1.5% of 200k)');
+
+  if (IS_WINDOWS) {
+    console.log('\n📌 检测到 Windows 系统，将自动添加 cmd /c 包装器');
+  }
+  console.log('');
 
   const confirm = await question('确认安装？[Y/n]: ');
   if (confirm.trim().toLowerCase() === 'n') {
@@ -163,9 +202,9 @@ async function installMinimalCore() {
   const config = loadClaudeConfig();
   config.mcpServers = config.mcpServers || {};
 
-  // Add core MCPs
-  config.mcpServers.memory = mcpServers.mcpServers.memory;
-  config.mcpServers['sequential-thinking'] = mcpServers.mcpServers['sequential-thinking'];
+  // Add core MCPs with platform adaptation
+  config.mcpServers.memory = adaptServerConfigForPlatform(mcpServers.mcpServers.memory);
+  config.mcpServers['sequential-thinking'] = adaptServerConfigForPlatform(mcpServers.mcpServers['sequential-thinking']);
 
   if (saveClaudeConfig(config)) {
     console.log('\n✅ 核心 MCP 安装成功！');
@@ -226,6 +265,10 @@ async function recommendByProjectType() {
     console.log(`📝 注意: ${recommendations.notes}\n`);
   }
 
+  if (IS_WINDOWS) {
+    console.log('\n📌 检测到 Windows 系统，将自动添加 cmd /c 包装器');
+  }
+
   const install = await question('安装推荐的 MCP？[Y/n]: ');
   if (install.trim().toLowerCase() === 'n') {
     console.log('已取消');
@@ -235,13 +278,13 @@ async function recommendByProjectType() {
   const config = loadClaudeConfig();
   config.mcpServers = config.mcpServers || {};
 
-  // Add core + recommended MCPs
-  config.mcpServers.memory = mcpServers.mcpServers.memory;
-  config.mcpServers['sequential-thinking'] = mcpServers.mcpServers['sequential-thinking'];
+  // Add core + recommended MCPs with platform adaptation
+  config.mcpServers.memory = adaptServerConfigForPlatform(mcpServers.mcpServers.memory);
+  config.mcpServers['sequential-thinking'] = adaptServerConfigForPlatform(mcpServers.mcpServers['sequential-thinking']);
 
   recommendations.recommended.forEach(mcp => {
     if (mcpServers.mcpServers[mcp]) {
-      config.mcpServers[mcp] = mcpServers.mcpServers[mcp];
+      config.mcpServers[mcp] = adaptServerConfigForPlatform(mcpServers.mcpServers[mcp]);
       console.log(`✅ 已添加: ${mcp}`);
     }
   });
@@ -311,6 +354,9 @@ async function addSingleMcp() {
   if (details.requires_auth) {
     console.log(`⚠️  需要配置: ${details.env}`);
   }
+  if (IS_WINDOWS && mcpServers.mcpServers[mcpName]?.command) {
+    console.log(`📌 Windows: 将自动添加 cmd /c 包装器`);
+  }
 
   const confirm = await question('\n确认添加？[Y/n]: ');
   if (confirm.trim().toLowerCase() === 'n') {
@@ -322,7 +368,7 @@ async function addSingleMcp() {
   config.mcpServers = config.mcpServers || {};
 
   if (mcpServers.mcpServers[mcpName]) {
-    config.mcpServers[mcpName] = mcpServers.mcpServers[mcpName];
+    config.mcpServers[mcpName] = adaptServerConfigForPlatform(mcpServers.mcpServers[mcpName]);
 
     if (saveClaudeConfig(config)) {
       console.log('\n✅ 添加成功！');
@@ -377,6 +423,65 @@ async function removeMcp() {
   }
 }
 
+// Fix Windows MCP configuration (add cmd /c wrapper)
+async function fixWindowsConfig() {
+  if (!IS_WINDOWS) {
+    console.log('\n❌ 此功能仅适用于 Windows 系统');
+    return;
+  }
+
+  console.log('\n=== 修复 Windows MCP 配置 ===\n');
+  console.log('此功能将为所有需要的 MCP 添加 cmd /c 包装器\n');
+
+  const config = loadClaudeConfig();
+  if (!config.mcpServers || Object.keys(config.mcpServers).length === 0) {
+    console.log('❌ 当前没有已配置的 MCP');
+    return;
+  }
+
+  // Find MCPs that need fixing
+  const needsFix = [];
+  Object.entries(config.mcpServers).forEach(([name, serverConfig]) => {
+    // Skip HTTP-based servers
+    if (serverConfig.type === 'http') return;
+
+    // Check if already using cmd wrapper
+    if (serverConfig.command?.toLowerCase() === 'cmd') return;
+
+    // Check if using npx/node/npm
+    const command = serverConfig.command?.toLowerCase();
+    if (command === 'npx' || command === 'node' || command === 'npm') {
+      needsFix.push({ name, config: serverConfig });
+    }
+  });
+
+  if (needsFix.length === 0) {
+    console.log('✅ 所有 MCP 配置已经正确，无需修复');
+    return;
+  }
+
+  console.log(`发现 ${needsFix.length} 个需要修复的 MCP:\n`);
+  needsFix.forEach(({ name, config: serverConfig }) => {
+    console.log(`  - ${name}: ${serverConfig.command} → cmd /c ${serverConfig.command}`);
+  });
+
+  const confirm = await question('\n确认修复？[Y/n]: ');
+  if (confirm.trim().toLowerCase() === 'n') {
+    console.log('已取消');
+    return;
+  }
+
+  // Apply fixes
+  needsFix.forEach(({ name }) => {
+    config.mcpServers[name] = adaptServerConfigForPlatform(config.mcpServers[name]);
+  });
+
+  if (saveClaudeConfig(config)) {
+    console.log(`\n✅ 已修复 ${needsFix.length} 个 MCP 配置！`);
+    console.log('🔄 请重启 Claude Code 以生效');
+  }
+}
+
 // Main menu
 async function mainMenu() {
   console.log('\n╔═══════════════════════════════════════════════╗');
@@ -386,15 +491,26 @@ async function mainMenu() {
   const config = loadClaudeConfig();
   displayCurrentStatus(config);
 
+  // Show platform info
+  if (IS_WINDOWS) {
+    console.log('📌 当前系统: Windows (将自动添加 cmd /c 包装器)\n');
+  }
+
   console.log('请选择操作：\n');
   console.log('1. 安装核心 MCP（minimal-core: memory + sequential-thinking）');
   console.log('2. 按项目类型选择 MCP（前端/后端/全栈/嵌入式/数据科学/Cloudflare）');
   console.log('3. 查看所有可用 MCP 及详细说明');
   console.log('4. 添加单个 MCP');
   console.log('5. 删除 MCP');
-  console.log('6. 退出\n');
+  if (IS_WINDOWS) {
+    console.log('6. 修复 Windows 配置（为现有 MCP 添加 cmd /c 包装器）');
+    console.log('7. 退出\n');
+  } else {
+    console.log('6. 退出\n');
+  }
 
-  const choice = await question('输入选项 (1-6): ');
+  const maxOption = IS_WINDOWS ? 7 : 6;
+  const choice = await question(`输入选项 (1-${maxOption}): `);
 
   switch (choice) {
     case '1':
@@ -414,9 +530,22 @@ async function mainMenu() {
       await removeMcp();
       break;
     case '6':
+      if (IS_WINDOWS) {
+        await fixWindowsConfig();
+        break;
+      }
+      // Fall through to exit on non-Windows
       console.log('\n再见！👋');
       rl.close();
       return;
+    case '7':
+      if (IS_WINDOWS) {
+        console.log('\n再见！👋');
+        rl.close();
+        return;
+      }
+      console.log('❌ 无效选项');
+      break;
     default:
       console.log('❌ 无效选项');
   }

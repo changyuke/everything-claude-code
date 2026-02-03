@@ -1,0 +1,47 @@
+{
+  "_note": "这是一个示例项目配置文件。复制并重命名为 deployment_YOURPROJECT.json",
+  "_usage": [
+    "1. 复制此文件: deployment_frontend.json, deployment_backend.json, etc.",
+    "2. 使用方式:",
+    "   npm run deploy -- --config=deployment_frontend.json",
+    "   npm run deploy -- -c deployment_backend.json",
+    "3. 或运行 npm run deploy 后交互式选择"
+  ],
+  "deploymentMode": "project",
+  "components": {
+    "agents": {
+      "enabled": true,
+      "items": ["planner", "code-reviewer", "tdd-guide"],
+      "description": "项目特定代理配置"
+    },
+    "skills": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "启用所有技能"
+    },
+    "commands": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "启用所有命令"
+    },
+    "rules": {
+      "enabled": true,
+      "items": ["coding-style", "git-workflow", "testing", "security"],
+      "description": "项目规则配置"
+    },
+    "hooks": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "启用所有钩子"
+    }
+  },
+  "mcp": {
+    "disabledMcpServers": [],
+    "description": "禁用特定 MCP 服务器（如不需要的后端服务）"
+  },
+  "statusLine": {
+    "enabled": true,
+    "description": "启用自定义状态栏"
+  },
+  "packageManager": "pnpm"
+}
