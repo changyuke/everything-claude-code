@@ -33,6 +33,11 @@
       "enabled": true,
       "items": ["all"],
       "description": "启用所有钩子"
+    },
+    "contexts": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "上下文文件：dev, research, review"
     }
   },
   "mcp": {

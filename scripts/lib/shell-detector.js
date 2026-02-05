@@ -82,10 +82,11 @@ function writeToRc(content) {
   // Escape special regex characters in BLOCK_START/END if necessary (they are mostly safe here)
   const regexStart = BLOCK_START.replace(/[.*+?^${}()|[\\]/g, '\\$&');
   const regexEnd = BLOCK_END.replace(/[.*+?^${}()|[\\]/g, '\\$&');
-  const regex = new RegExp(`${regexStart}[\s\S]*?${regexEnd}`, 'g');
+  const regex = new RegExp(`${regexStart}[\\s\\S]*?${regexEnd}`);
+  const newContent = fileContent.replace(regex, block);
 
-  if (regex.test(fileContent)) {
-    fileContent = fileContent.replace(regex, block);
+  if (newContent !== fileContent) {
+    fileContent = newContent;
     console.log(`Updated configuration in ${rcPath}`);
   } else {
     // Append with a newline if file is not empty and doesn't end with one
@@ -116,10 +117,11 @@ function removeFromRc() {
   
   const regexStart = BLOCK_START.replace(/[.*+?^${}()|[\\]/g, '\\$&');
   const regexEnd = BLOCK_END.replace(/[.*+?^${}()|[\\]/g, '\\$&');
-  const regex = new RegExp(`\\n?${regexStart}[\s\S]*?${regexEnd}\\n?`, 'g');
+  const regex = new RegExp(`\\n?${regexStart}[\\s\\S]*?${regexEnd}\\n?`);
+  const newContent = fileContent.replace(regex, '\n');
 
-  if (regex.test(fileContent)) {
-    fileContent = fileContent.replace(regex, '\n');
+  if (newContent !== fileContent) {
+    fileContent = newContent;
     // Clean up potential double newlines
     fileContent = fileContent.replace(/\n{3,}/g, '\n\n');
     fs.writeFileSync(rcPath, fileContent.trim() + '\n', 'utf8');

@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 const { PROJECT_ROOT } = require('./config-manager');
 
-const COMPONENT_DIRS = ['agents', 'skills', 'commands', 'rules', 'hooks'];
+const COMPONENT_DIRS = ['agents', 'skills', 'commands', 'rules', 'hooks', 'contexts'];
 
 function copyRecursiveSync(src, dest) {
   if (!fs.existsSync(src)) return;

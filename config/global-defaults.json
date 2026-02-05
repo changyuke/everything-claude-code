@@ -36,6 +36,12 @@
       "items": ["all"],
       "description": "Hooks 运行时执行，上下文影响小",
       "rationale": "Hooks 是事件驱动，不会一直占用上下文"
+    },
+    "contexts": {
+      "enabled": true,
+      "items": ["all"],
+      "description": "上下文文件：dev, research, review",
+      "rationale": "轻量级 prompt 上下文，用于模式切换"
     }
   },
   "statusLine": {

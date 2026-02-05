@@ -69,7 +69,8 @@ async function main() {
       skills: { enabled: true, items: ['all'] },
       commands: { enabled: true, items: ['all'] },
       rules: { enabled: true, items: ['all'] },
-      hooks: { enabled: true, items: ['all'] }
+      hooks: { enabled: true, items: ['all'] },
+      contexts: { enabled: true, items: ['all'] }
   };
 
   console.log('\n部署组件配置:');
